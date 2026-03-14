@@ -20,7 +20,7 @@ async def watch_for_do(message):
         return
 
     if message.content.strip().lower() == "!dô":
-        await asyncio.sleep(2.0)
+        await asyncio.sleep(5.0)
         
         recent_messages = [msg async for msg in message.channel.history(limit=5)]
         
@@ -32,7 +32,7 @@ async def watch_for_do(message):
                 break
                 
         if not main_bot_responded:
-            await message.channel.send("botdam đang chết hoặc đánh vần ngu\nmuốn xài thì học chính tả hoặc kêu bot dâm gọi botdam dậy")
+            await message.channel.send("botdam đang chết hoặc chưa load xong")
 
 # Start the web server
 keep_alive() # <-- Added this
