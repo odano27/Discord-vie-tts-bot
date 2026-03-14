@@ -239,28 +239,37 @@ async def on_ready():
 
 @bot.command()
 async def dô(ctx):
-    if ctx.author.voice:
-        channel = ctx.author.voice.channel
-        tts_channels[ctx.guild.id] = ctx.channel.id
-        last_speakers[ctx.guild.id] = None
-        
-        clear_queue(ctx.guild.id)
-
-        data, gid = get_guild_data(ctx.guild.id)
-        current_prefix = data[gid]["prefix"]
-        instructions = f"Botdam đã xuất hiện\n`{current_prefix} [gì đó]` để đọc\n`!cú` nếu bị ngu"
-
+    if not ctx.author.voice:
         if not ctx.guild.voice_client:
-            await channel.connect()
-            await ctx.send(instructions)
-            await ctx.send("https://tenor.com/view/peepo-arrive-pepe-gif-18118119")
-            if ctx.guild.id not in tts_queues:
-                tts_queues[ctx.guild.id] = asyncio.Queue()
-                bot.loop.create_task(tts_worker(ctx.guild.id))
-        else:
-            await ctx.send(f"Đã đổi channel\n{instructions}")
+            await ctx.send("dô đây rồi tao dô")
+        return
+
+    channel = ctx.author.voice.channel
+    tts_channels[ctx.guild.id] = ctx.channel.id
+    last_speakers[ctx.guild.id] = None
+    
+    clear_queue(ctx.guild.id)
+
+    data, gid = get_guild_data(ctx.guild.id)
+    current_prefix = data[gid]["prefix"]
+    instructions = f"Botdam đã xuất hiện\n`{current_prefix} [gì đó]` để đọc\n`!cú` nếu bị ngu"
+
+    voice_client = ctx.guild.voice_client
+
+    if not voice_client:
+        await channel.connect()
+        await ctx.send(instructions)
+        await ctx.send("https://tenor.com/view/peepo-arrive-pepe-gif-18118119")
+        if ctx.guild.id not in tts_queues:
+            tts_queues[ctx.guild.id] = asyncio.Queue()
+            bot.loop.create_task(tts_worker(ctx.guild.id))
     else:
-        await ctx.send("Dô đây tao mới dô")
+        if voice_client.channel != channel:
+            await voice_client.move_to(channel)
+            return await ctx.send(f"Đã đổi channel\n{instructions}")
+        else:
+            return await ctx.send("đang ở đây rồi cha mày")
+        await ctx.send(f"không có bên này kêu mẹ gì")
 
 @bot.command()
 async def cú(ctx):
@@ -295,11 +304,39 @@ async def cút(ctx):
 @bot.command()
 async def im(ctx):
     gid = ctx.guild.id
-    if gid in current_playing:
-        cancelled_msgs.add(current_playing[gid])
+    base_msg_id = current_playing.get(gid)
+    
+    if base_msg_id:
+        cancelled_msgs.add(base_msg_id)
+        
     if ctx.guild.voice_client and ctx.guild.voice_client.is_playing():
         ctx.guild.voice_client.stop()
-    await ctx.message.add_reaction("🛑")
+        
+    reacted = False
+    if base_msg_id:
+        try:
+            target_channel_id = tts_channels.get(gid, ctx.channel.id)
+            target_channel = bot.get_channel(target_channel_id) or ctx.channel
+            original_message = await target_channel.fetch_message(int(base_msg_id))
+            
+            await original_message.add_reaction("<:suyt:1388876103703203972>")
+            await original_message.add_reaction("ℹ️")
+            await original_message.add_reaction("Ⓜ️")
+            reacted = True
+        except Exception:
+            pass # Message might have been deleted
+
+    # Fallback to the !im message if original message wasn't found
+    if not reacted:
+        try:
+            await ctx.message.add_reaction("<:suyt:1388876103703203972>")
+            await ctx.message.add_reaction("ℹ️")
+            await ctx.message.add_reaction("Ⓜ️")
+        except Exception:
+            pass
+            
+    await ctx.send("nói nhiều quá coi chừng bị bịt miệng")
+    
 
 @bot.command()
 async def channel(ctx):
@@ -325,6 +362,9 @@ async def tiếng(ctx, lang_code: typing.Optional[str] = None):
                         msg += f" bằng giọng {i}"
                         break
         return await ctx.send(msg)
+        
+    if lang_code not in LANGUAGES_VI:
+        return await ctx.send("sai code rồi mẹ mày")
         
     data[gid]["languages"][str(ctx.author.id)] = lang_code
     await save_data_async()
