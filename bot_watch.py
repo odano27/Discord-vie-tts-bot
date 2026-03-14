@@ -40,4 +40,4 @@ async def watch_for_do(message):
             await message.channel.send("botdam đang chết muốn xài thì kêu bot dâm gọi botdam dậy")
 
 # The token will be read from the environment variable we set up on the host
-bot.run(os.environ["MTQ4MjE2ODc0Njg0Mjc4Mzc0NA.Ggposw.jwjqgFLu1OjfrGQhlsd16nCfOHd8BSL-RnBCf4"])
+bot.run(os.environ["DISCORD_TOKEN"])
