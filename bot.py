@@ -516,4 +516,4 @@ async def on_message(message):
         push_to_queue(message.guild.id, payload)
 
 # bot.run("YOUR_TOKEN_HERE")
-bot.run("MTQ4MTYxNjg0OTk1ODQ3Mzc5OA.Gsz7PE.EGbOOtNhE34oH7dITErmhTWpzxI3_YAhAS-Uf0")
+bot.run("DISCORD_TOKEN")
