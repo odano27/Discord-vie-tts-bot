@@ -18,7 +18,7 @@ async def watch_for_do(message):
     if message.author == bot.user:
         return
 
-    if message.content.strip().lower() == "!dô":
+    if message.content.strip().lower() == "!dô" or "!status":
         await asyncio.sleep(2.0)
         
         recent_messages = [msg async for msg in message.channel.history(limit=5)]
