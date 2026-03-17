@@ -19,17 +19,16 @@ async def watch_for_do(message):
         return
 
     if message.content.strip().lower() == "!dô":
-        await asyncio.sleep(5.0)
+        await asyncio.sleep(2.0)
         
         recent_messages = [msg async for msg in message.channel.history(limit=5)]
         
         main_bot_responded = False
         for msg in recent_messages:
-            if msg.author.id == MAIN_BOT_ID and msg.created_at >= message.created_at:
+            if msg.author.id == MAIN_BOT_ID and msg.created_at >= message.created_at and msg.content.contains("Botdam"):
                 main_bot_responded = True
                 await message.channel.send("おめでとう\nmời sủa")
                 break
-                
         if not main_bot_responded:
             await message.channel.send("botdam đang chết hoặc chưa load xong")
 
