@@ -18,16 +18,16 @@ async def watch_for_do(message):
     if message.author == bot.user:
         return
 
-    if if message.content.strip().lower() in ["!dô", "!status"]:
+    if message.content.strip().lower() in ["!dô", "!status"]:
         await asyncio.sleep(2.0)
         
         recent_messages = [msg async for msg in message.channel.history(limit=5)]
         
-        main_bot_responded = False
-        for msg in recent_messages:
-            if msg.author.id == MAIN_BOT_ID and msg.created_at >= message.created_at and (msg.content.split()[0] in ["Botdam", "sống"]):
-                main_bot_responded = True
-                break
+        main_bot_responded = any(
+            msg.author.id == MAIN_BOT_ID and 
+            ("Botdam" in msg.content or "sống" in msg.content)
+            for msg in recent_messages
+        )
         
         if not main_bot_responded:
             await message.channel.send("botdam đang chết hoặc chưa load xong")
