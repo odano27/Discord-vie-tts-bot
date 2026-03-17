@@ -347,7 +347,9 @@ async def dô(ctx):
     else:
         if voice_client.channel != channel:
             await voice_client.move_to(channel)
-        await ctx.send(f"Đã đổi channel\n{instructions}")
+            await ctx.send(f"Đã đổi channel\n{instructions}")
+        else:
+            await ctx.send("Đang trong này rồi đụ má")
 
     warmup_payload = {
         "text": "ハローエブリニャン",
@@ -426,6 +428,10 @@ async def channel(ctx):
     tts_channels[ctx.guild.id] = ctx.channel.id
     last_speakers[ctx.guild.id] = None
     await ctx.send(f"Sủa vào channel {ctx.channel.mention}")
+
+@bot.command()
+async def status(ctx):
+    await ctx.send("sống")
 
 @bot.command()
 async def tiếng(ctx, lang_code: typing.Optional[str] = None):
