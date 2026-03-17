@@ -5,31 +5,10 @@ import asyncio
 import os
 import json
 import typing
-# import threading
 import re
 import wave
-import time  # Thêm module time để đo độ trễ
+import time
 import subprocess
-
-# --- ĐÃ COMMENT CÁC MODEL LOCAL ---
-# from piper.voice import PiperVoice
-# from vieneu import Vieneu
-
-# vieneu_tts = Vieneu()
-# print("VieNeu Tải Xong!")
-
-# PIPER_MODEL_PATHS = {
-#     "vi-vn": "piper_models/vi-vn.onnx",
-#     "en-us": "piper_models/en-us.onnx",
-#     "en-gb": "piper_models/en-gb.onnx"
-# }
-# piper_voices = {}
-
-# for code, path in PIPER_MODEL_PATHS.items():
-#     if os.path.exists(path):
-#         piper_voices[code] = PiperVoice.load(path,config_path=path+".json")
-#         print(f"Piper {code} Tải Xong!")
-# ----------------------------------
 
 MOD_ROLE_ID = 1315683389449310349
 
@@ -45,7 +24,6 @@ current_playing = {}
 cancelled_msgs = set()
 tts_semaphore = None
 
-# infer_lock = threading.Lock() # Không cần dùng cho gTTS
 DATA_FILE = "data.json"
 
 LANGUAGES_VI = {
@@ -125,27 +103,16 @@ def get_guild_data(guild_id):
     if "vieneu_voices" not in BOT_DATA[gid]: BOT_DATA[gid]["vieneu_voices"] = {}
     return BOT_DATA, gid
 
-# ĐÃ SỬA: CHỈ SỬ DỤNG gTTS VÀ ĐO LATENCY TẠI ĐÂY
 def tao_file_am_thanh(text, lang, filename, voice_id=None, metrics=None):
     if metrics is None: metrics = {}
-    
-    # Chuyển đổi mã ngôn ngữ phù hợp với gTTS (vd: vi-vn -> vi, vn -> vi)
+
     lang_lower = lang.lower().split('-')[0]
     if lang_lower == 'vn':
         lang_lower = 'vi'
 
-    # --- BLOCK LOCAL MODELS ĐÃ BỊ COMMENT ---
-    # if lang_lower == 'vn':
-    #     with infer_lock: ...
-    # elif lang_lower in['vi-vn', 'en-us', 'en-gb']:
-    #     with infer_lock: ...
-    # ----------------------------------------
-
-    # TẠO TTS TỪ gTTS
     tts = gTTS(text=text, lang=lang_lower)
     tts.save(filename)
     
-    # GHI NHẬN THỜI GIAN HOÀN THÀNH gTTS
     metrics['gtts_done'] = time.time()
 
 def xoa_file(fname):
@@ -208,7 +175,6 @@ async def tts_worker(guild_id):
 
         try:
             ffmpeg_options = '-vn -sn'
-            # Bỏ qua bước phân tích metadata của file mp3 để FFmpeg khởi động ngay lập tức
             ffmpeg_before_options = '-analyzeduration 0 -loglevel error'
             
             audio_filters =[]
@@ -223,7 +189,6 @@ async def tts_worker(guild_id):
 
             t_ffmpeg_start = time.time()
             
-            # Thêm before_options vào bộ khởi tạo
             audio_source = await asyncio.to_thread(
                 discord.FFmpegPCMAudio, 
                 filename, 
@@ -251,14 +216,9 @@ async def tts_worker(guild_id):
                     t3_start = t_ffmpeg_start
                     t3_done = metrics['ffmpeg_done']
                     t4 = metrics['discord_play']
-                    print(f"1. Python processing: {(t1 - t0)*1000:7.2f} ms")
                     print(f"2. gTTS API:          {(t2 - t1)*1000:7.2f} ms")
-                    print(f"3. Queue:             {(t3_start - t2)*1000:7.2f} ms")
                     print(f"4. FFmpeg:            {(t3_done - t3_start)*1000:7.2f} ms")
-                    print(f"5. Discord Play:      {(t4 - t3_done)*1000:7.2f} ms")
-                    print(f"--------------------------------------------")
                     print(f"Processing delay:     {(t4 - t0 - t3_start + t2)*1000:7.2f} ms")
-                    print(f"============================================\n")
                 except KeyError:
                     pass
 
@@ -283,8 +243,6 @@ def clear_queue(guild_id):
 async def safe_generate_tts(text, lang, filename, voice_id, metrics):
     global tts_semaphore
     if tts_semaphore is None:
-        # Chỉ cho phép tải tối đa 2 đoạn gTTS cùng một lúc
-        # Nhường các thread còn lại cho FFmpeg xử lý âm thanh
         tts_semaphore = asyncio.Semaphore(2) 
         
     async with tts_semaphore:
@@ -298,7 +256,6 @@ def push_to_queue(guild_id, payload):
     file_ext = "mp3"
     filename = f"audio_{payload['msg_id']}.{file_ext}"
 
-    # Gọi qua hàm an toàn thay vì bắn thẳng vào asyncio.to_thread
     gen_task = bot.loop.create_task(
         safe_generate_tts(payload["text"], payload["lang"], filename, payload["voice_id"], payload["metrics"])
     )
@@ -321,10 +278,8 @@ async def show_muted(ctx, data, gid):
         await ctx.send(f"Các con dợ {mentions} đang bị bịt mỏ")
 
 async def keep_ffmpeg_warm():
-    """Chạy ngầm FFmpeg định kỳ để giữ nó luôn ở trong RAM (OS Cache), tránh bị Windows cho ngủ"""
     while True:
         try:
-            # Lệnh cực nhẹ, không tốn CPU, chỉ để báo cho Windows biết FFmpeg vẫn đang được sử dụng
             proc = await asyncio.create_subprocess_exec(
                 "ffmpeg", "-version",
                 stdout=asyncio.subprocess.DEVNULL,
@@ -334,15 +289,13 @@ async def keep_ffmpeg_warm():
             await proc.wait()
         except Exception:
             pass
-        await asyncio.sleep(180)  # Chạy mỗi 3 phút
+        await asyncio.sleep(3600)
 
 @bot.event
 async def on_ready():
     load_data()
     print(f'Bot đã sẵn sàng! Đăng nhập dưới tên {bot.user.name}')
-    
-    # Bắt đầu giữ ấm FFmpeg
-    bot.loop.create_task(keep_ffmpeg_warm())
+    #bot.loop.create_task(keep_ffmpeg_warm())
 
 def warmup_gtts():
     try:
@@ -478,7 +431,6 @@ async def tiếng(ctx, lang_code: typing.Optional[str] = None):
         current_lang = data[gid]["languages"].get(str(ctx.author.id), 'vi')
         lang_name = LANGUAGES_VI.get(current_lang.lower(), current_lang)
         msg = f"{ctx.author.mention} đang sủa {lang_name}"
-        # --- Bỏ tính năng liệt kê giọng do đã khoá local models ---
         return await ctx.send(msg)
         
     lang_code = lang_code.lower()
@@ -607,7 +559,6 @@ async def on_message(message):
     req_prefix = data[gid]["prefix"].lower()
     
     if msg_content.lower().startswith(req_prefix):
-        # THỜI ĐIỂM 0: Phát hiện tin nhắn yêu cầu TTS
         t0_received = time.time()
         msg_content = msg_content[len(req_prefix):].strip()
     else:
@@ -651,7 +602,6 @@ async def on_message(message):
     chunks = split_text_for_tts(text_to_read, max_words=25)
     
     for i, chunk in enumerate(chunks):
-        # THỜI ĐIỂM 1: Xử lý chuỗi, chia nhỏ xong, chuẩn bị đẩy vào queue
         t1_processed = time.time()
         
         payload = {
