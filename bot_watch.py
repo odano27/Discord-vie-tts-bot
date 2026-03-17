@@ -15,17 +15,18 @@ async def on_ready():
 
 @bot.listen('on_message')
 async def watch_for_do(message):
-    if message.author == bot.user:
+    if message.author.bot:
         return
 
-    if message.content.strip().lower() in ["!dô", "!status"]:
+    content = message.content.strip().lower()
+    if content in ["!dô", "!status"]:
         await asyncio.sleep(2.0)
         
         recent_messages = [msg async for msg in message.channel.history(limit=5)]
         
         main_bot_responded = any(
             msg.author.id == MAIN_BOT_ID and 
-            ("Botdam" in msg.content or "sống" in msg.content)
+            ("botdam" in msg.content.lower() or "sống" in msg.content.lower())
             for msg in recent_messages
         )
         
