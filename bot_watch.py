@@ -25,7 +25,7 @@ async def watch_for_do(message):
         
         main_bot_responded = False
         for msg in recent_messages:
-            if msg.author.id == MAIN_BOT_ID and msg.created_at >= message.created_at and msg.content.contains("Botdam"):
+            if msg.author.id == MAIN_BOT_ID and msg.created_at >= message.created_at and ("Botdam" in msg.content or "sống" in msg.content):
                 main_bot_responded = True
                 await message.channel.send("おめでとう\nmời sủa")
                 break
