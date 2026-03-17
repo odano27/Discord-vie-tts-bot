@@ -216,9 +216,14 @@ async def tts_worker(guild_id):
                     t3_start = t_ffmpeg_start
                     t3_done = metrics['ffmpeg_done']
                     t4 = metrics['discord_play']
+                    #print(f"1. Python processing: {(t1 - t0)*1000:7.2f} ms")
                     print(f"2. gTTS API:          {(t2 - t1)*1000:7.2f} ms")
+                    #print(f"3. Queue:             {(t3_start - t2)*1000:7.2f} ms")
                     print(f"4. FFmpeg:            {(t3_done - t3_start)*1000:7.2f} ms")
+                    #print(f"5. Discord Play:      {(t4 - t3_done)*1000:7.2f} ms")
+                    #print(f"--------------------------------------------")
                     print(f"Processing delay:     {(t4 - t0 - t3_start + t2)*1000:7.2f} ms")
+                    #print(f"============================================\n")
                 except KeyError:
                     pass
 
@@ -363,8 +368,6 @@ async def cú(ctx):
         f"{ctx.author.mention} bị ngu\n`{current_prefix} [gì đó]` để đọc\n"
         "`!cút` để đá đít\n"
         "`!tiếng [code]` đổi ngôn ngữ\n"
-        "`!dsgiọng` xem các giọng VN hiện có\n"
-        "`!giọng [số]` đổi giọng cá nhân\n"
         "`!prefix[txt]` để sửa prefix\n"
         "`!announce true/false` để sủa tên\n"
         "`!tên [tên]` để đổi tên\n"
@@ -444,11 +447,11 @@ async def tiếng(ctx, lang_code: typing.Optional[str] = None):
 
 @bot.command()
 async def dsgiọng(ctx):
-    await ctx.send("⚠️ Hiện bot chỉ chạy bằng gTTS độc quyền. Tính năng đổi giọng Local đã bị tắt.")
+    await ctx.send("chậm quá vứt rồi")
 
 @bot.command()
 async def giọng(ctx, index: str):
-    await ctx.send("⚠️ Hiện bot chỉ chạy bằng gTTS độc quyền. Tính năng đổi giọng Local đã bị tắt.")
+    await ctx.send("chậm quá vứt rồi")
 
 @bot.command()
 async def prefix(ctx, new_prefix: str):
