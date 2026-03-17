@@ -27,10 +27,12 @@ async def watch_for_do(message):
         for msg in recent_messages:
             if msg.author.id == MAIN_BOT_ID and msg.created_at >= message.created_at and ("Botdam" in msg.content or "sống" in msg.content):
                 main_bot_responded = True
-                await message.channel.send("おめでとう\nmời sủa")
                 break
+        
         if not main_bot_responded:
             await message.channel.send("botdam đang chết hoặc chưa load xong")
+        else:
+            await message.channel.send("おめでとう\nmời sủa")
 
 # Start the bot
 bot.run(os.environ["DISCORD_TOKEN"])
