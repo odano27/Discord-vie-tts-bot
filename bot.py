@@ -362,7 +362,7 @@ async def dô(ctx):
     }
     push_to_queue(ctx.guild.id, warmup_payload)
     
-@bot.command(aliases=['help', 'cu'])
+@bot.command(aliases=['cu'])
 async def cú(ctx):
     data, gid = get_guild_data(ctx.guild.id)
     current_prefix = data[gid]["prefix"]
