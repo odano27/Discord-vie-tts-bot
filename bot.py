@@ -362,7 +362,7 @@ async def dô(ctx):
     }
     push_to_queue(ctx.guild.id, warmup_payload)
     
-@bot.command()
+@bot.command(aliases=['help', 'cu'])
 async def cú(ctx):
     data, gid = get_guild_data(ctx.guild.id)
     current_prefix = data[gid]["prefix"]
@@ -379,7 +379,28 @@ async def cú(ctx):
     )
     await ctx.send(instructions)
 
-@bot.command()
+@bot.command(aliases=['music'])
+async def nhạc(ctx):
+    data, gid = get_guild_data(ctx.guild.id)
+    msg = (
+        f"**MUSIC CHEAT SHEET CHO MẤY CON DỢ**\n"
+        f"`m!p [tên bài/link]` : sủa ra nhạc\n"
+        f"`m!s` : skip\n"
+        f"`m!back` : bài trước\n"
+        f"`m!leave` : đá đít con bot\n\n"
+        f"`m!q` : xem queue\n"
+        f"`m!np` : xem bài đang sủa\n"
+        f"`m!shuffle` : everyday i'm shuffling\n"
+        f"`m!clear` : dẹp list nhạc\n\n"
+        f"🛠️ **BỔ TRỢ:**\n"
+        f"`m!vol [0-200]` : vol\n"
+        f"`m!lyrics` : lời\n"
+        f"`m!radio [tên]` : radio?\n\n"
+        f"*còn ngu thì gõ m!help*"
+    )
+    await ctx.send(msg)
+
+@bot.command(aliases=['leave', 'cut'])
 async def cút(ctx):
     if ctx.guild.voice_client:
         await ctx.guild.voice_client.disconnect()
@@ -505,7 +526,7 @@ async def tên(ctx, *, args: typing.Optional[str] = None):
     await ctx.send(f"{target.mention} biến thành **{nickname}**.")
     return await ctx.send("https://tenor.com/view/vine-morph-vinesauce-vinny-vinesauce-duck-transformation-gif-25311790")
 
-@bot.command()
+@bot.command(aliases=['suỵt'])
 async def nín(ctx, target: typing.Optional[typing.Union[discord.Member, str]] = None):
     data, gid = get_guild_data(ctx.guild.id)
     if target is None:
